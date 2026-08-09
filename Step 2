@@ -1,0 +1,33 @@
+##Phase 2.1: Data Collection
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+file_path = 'Online Retail.xlsx'
+try:
+    df = pd.read_excel(file_path)
+    print("File loaded successfully.\n")
+except Exception as e:
+    print(f"Error loading file: {e}")
+
+##Phase 2.2: Data Dictionary
+data_dict = {
+    'Variable': ['InvoiceNo', 'StockCode', 'Description', 'Quantity', 'InvoiceDate', 'UnitPrice', 'CustomerID', 'Country'],
+    'Definition': [
+        'A 6-digit integral number uniquely assigned to each transaction. If it starts with "C", it indicates a cancellation.',
+        'Product (item) code. A 5-digit integral number uniquely assigned to each distinct product.',
+        'Product (item) name.',
+        'The quantities of each product (item) per transaction. Negative values indicate returns.',
+        'The day and time when a transaction was generated.',
+        'Product price per unit in Sterling (£).',
+        'A 5-digit integral number uniquely assigned to each customer.',
+        'The name of the country where a customer resides.'
+    ],
+    'Data Type': ['Object/String', 'Object/String', 'Object/String', 'Integer', 'DateTime', 'Float', 'Float/Object', 'Object/String']
+}
+
+data_dict_df = pd.DataFrame(data_dict)
+display(data_dict_df)
