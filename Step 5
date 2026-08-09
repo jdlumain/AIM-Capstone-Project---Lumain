@@ -1,0 +1,52 @@
+!pip install shap
+
+import shap
+from sklearn.inspection import permutation_importance
+
+# 1. Permutation Importance (Global Proxy)
+perm_importance = permutation_importance(rf_model, X_test, y_test, n_repeats=10, random_state=42)
+
+perm_df = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': perm_importance.importances_mean
+}).sort_values(by='Importance', ascending=False)
+
+print("Permutation Importance (Global):")
+display(perm_df)
+
+# 2. SHAP Explainability
+# We use the TreeExplainer for our Random Forest model
+explainer = shap.TreeExplainer(rf_model)
+shap_values = explainer.shap_values(X_test)
+
+# Visualizing Global impact for a specific class (e.g., 'Champions')
+# Note: shap_values is a list where each element corresponds to a class
+class_idx = list(rf_model.classes_).index('Champions')
+
+print(f"\nSHAP Global Summary for Segment: Champions")
+shap.summary_plot(shap_values[class_idx], X_test, plot_type="bar")
+
+# Select a single customer from the test set who is a Champion
+champion_indices = np.where(y_test == 'Champions')[0]
+# We'll use the relative index for the sample within X_test
+sample_idx = champion_indices[0]
+
+print(f"Local Explanation for Customer ID: {X_test.index[sample_idx]}")
+shap.initjs()
+
+# TreeExplainer for multiclass Random Forest can return a list of arrays
+# We ensure we extract the values for the specific class index
+if isinstance(shap_values, list):
+    # Standard list-based output for multiclass
+    sample_shap = shap_values[class_idx][sample_idx]
+    base_val = explainer.expected_value[class_idx]
+else:
+    # Array-based output [samples, features, classes]
+    sample_shap = shap_values[sample_idx, :, class_idx]
+    base_val = explainer.expected_value[class_idx]
+
+shap.force_plot(
+    base_val,
+    sample_shap,
+    X_test.iloc[sample_idx, :]
+)
