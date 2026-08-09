@@ -1,0 +1,87 @@
+#Step 4.1: Random Forest
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Prepare features (X) and target (y)
+X = rfm_final
+y = rfm['Segment']
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Initialize and train Random Forest
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = rf_model.predict(X_test)
+
+# Evaluation
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+# Feature Importance
+feature_importance = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': rf_model.feature_importances_
+}).sort_values(by='Importance', ascending=False)
+
+plt.figure(figsize=(8, 5))
+sns.barplot(x='Importance', y='Feature', data=feature_importance, palette='magma')
+plt.title('Feature Importance for Customer Segmentation')
+plt.show()
+
+#Step 4.2: Logistic Regression
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+
+# 1. Logistic Regression
+log_reg = LogisticRegression(max_iter=1000, random_state=42)
+log_reg.fit(X_train, y_train)
+y_pred_lr = log_reg.predict(X_test)
+
+print("--- Logistic Regression Classification Report ---")
+print(classification_report(y_test, y_pred_lr))
+
+# Step 4.3. Decision Tree
+dtree = DecisionTreeClassifier(max_depth=3, random_state=42)
+dtree.fit(X_train, y_train)
+y_pred_dt = dtree.predict(X_test)
+
+print("\n--- Decision Tree Classification Report ---")
+print(classification_report(y_test, y_pred_dt))
+
+# Visualize the Decision Tree logic
+plt.figure(figsize=(20, 10))
+plot_tree(dtree, feature_names=X.columns, class_names=dtree.classes_, filled=True, rounded=True, fontsize=12)
+plt.title("Decision Tree Rules for Customer Segments")
+plt.show()
+
+
+#Step 4.4 Compare Results
+# Calculate overall accuracy for each model
+rf_acc = accuracy_score(y_test, y_pred)
+lr_acc = accuracy_score(y_test, y_pred_lr)
+dt_acc = accuracy_score(y_test, y_pred_dt)
+
+# Create a comparison dataframe
+comparison_data = {
+    'Model': ['Random Forest', 'Logistic Regression', 'Decision Tree'],
+    'Accuracy': [rf_acc, lr_acc, dt_acc],
+    'Methodology': ['Ensemble / Non-Linear', 'Linear', 'Rule-Based']
+}
+
+comparison_df = pd.DataFrame(comparison_data)
+
+print("Overall Model Accuracy Comparison:")
+display(comparison_df.sort_values(by='Accuracy', ascending=False))
+
+# Visualize accuracy
+plt.figure(figsize=(10, 6))
+sns.barplot(x='Model', y='Accuracy', data=comparison_df, palette='coolwarm')
+plt.ylim(0.7, 1.05)
+plt.title('Comparison of Supervised Models in Predicting K-Means Clusters')
+plt.ylabel('Test Accuracy')
+plt.grid(axis='y', linestyle='--', alpha=0.6)
+plt.show()
